@@ -103,7 +103,7 @@ export default function CommandPalette() {
           {items.length === 0 && (
             <div className="cmd-empty">Tidak ada hasil ditemukan.</div>
           )}
-          {items.map((item, idx) => {
+          {items.map((item: any, idx) => {
             if (item.type === 'header') {
               return <div key={`h-${idx}`} className="cmd-header">{item.label}</div>;
             }
@@ -111,7 +111,7 @@ export default function CommandPalette() {
             const active = selectableIdx === selectedIndex;
             return (
               <div
-                key={item.id}
+                key={item.id || idx}
                 className={`cmd-item ${active ? 'active' : ''}`}
                 onMouseEnter={() => setSelectedIndex(selectableIdx)}
                 onClick={() => { if (item.action) { item.action(); handleClose(); } }}
