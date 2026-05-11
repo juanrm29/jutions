@@ -59,12 +59,12 @@ export default function CommandPalette() {
 
   const items = [
     ...(query.trim() || filteredWritings.length === 0 ? [] : [{ type: 'header', label: 'Saran' }]),
-    ...commands.map(c => ({ type: 'command', ...c })),
-    ...(filteredWritings.length > 0 ? [{ type: 'header', label: 'Tulisan' }] : []),
-    ...filteredWritings.map(w => ({ type: 'writing', id: w.id, label: w.title, action: () => router.push(`/read/${w.id}`) })),
+    ...commands.map(c => ({ type: 'command' as const, ...c })),
+    ...(filteredWritings.length > 0 ? [{ type: 'header' as const, label: 'Tulisan' }] : []),
+    ...filteredWritings.map(w => ({ type: 'writing' as const, id: w.id, label: w.title, action: () => router.push(`/read/${w.id}`) })),
   ];
 
-  const selectableItems = items.filter(i => i.type !== 'header');
+  const selectableItems = items.filter(i => i.type !== 'header') as any[];
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
