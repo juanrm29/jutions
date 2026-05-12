@@ -69,7 +69,7 @@ function HomeContent() {
   const genres: ('all' | Genre)[] = ['all', 'novel', 'cerpen', 'jurnal', 'esai', 'puisi', 'lainnya'];
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '64px 32px 120px' }}>
+    <div className="page-container">
       {/* Page header */}
       <div className="animate-fade-up" style={{ marginBottom: 40 }}>
         <h1 className="linear-title" style={{ marginBottom: 8 }}>
@@ -187,10 +187,10 @@ function HomeContent() {
               <span className="genre-badge" style={{ fontSize: 11, background: 'transparent' }}>
                 {GENRE_META[w.genre]?.label}
               </span>
-              <span className="notion-row-meta" style={{ minWidth: 60, textAlign: 'right' }}>
+              <span className="notion-row-meta" style={{ flex: '1 1 auto', textAlign: 'right' }}>
                 {w.readTime} min
               </span>
-              <span className="notion-row-meta" style={{ minWidth: 100, textAlign: 'right' }}>
+              <span className="notion-row-meta" style={{ textAlign: 'right' }}>
                 {new Date(w.createdAt).toLocaleDateString('id-ID', {
                   day: 'numeric', month: 'short', year: 'numeric',
                 })}

@@ -154,8 +154,8 @@ export default function ReaderPage() {
           </aside>
         )}
 
-        <div ref={contentRef} style={{ flex: 1, maxWidth: 720, width: '100%' }}>
-          <article style={{ margin: '0 auto', padding: '64px 32px 120px' }}>
+        <div ref={contentRef} style={{ flex: 1, width: '100%' }}>
+          <article className="reader-container">
             {/* Title */}
           <h1 className="linear-title animate-fade-up" style={{ marginBottom: 24 }}>
             {writing.title}

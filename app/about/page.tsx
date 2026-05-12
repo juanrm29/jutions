@@ -48,7 +48,7 @@ export default function AboutPage() {
   });
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 32px 120px' }}>
+    <div className="reader-container">
       {/* Title & Controls */}
       <div className="animate-fade-up" style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>

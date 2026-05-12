@@ -195,7 +195,7 @@ export default function EditorPage() {
           Kembali
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 12, color: 'var(--stone)' }}>
             {wordCount} kata · {calcReadTime(getContentText())} min
           </span>
@@ -252,7 +252,7 @@ export default function EditorPage() {
       </header>
 
       {/* Editor area */}
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px 120px' }}>
+      <div className="reader-container">
         {/* Genre emoji */}
         <div style={{ position: 'relative', marginBottom: 12 }}>
           <button
