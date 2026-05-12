@@ -15,6 +15,11 @@ export async function getWritings(): Promise<Writing[]> {
     console.error('Error fetching writings:', error);
     return [];
   }
+  
+  if (!data) {
+    console.log('No data returned from writings table');
+    return [];
+  }
 
   // Map database fields to application types
   return data.map((row: any) => ({
@@ -85,13 +90,22 @@ export async function saveWriting(writing: Writing): Promise<void> {
       .insert([{ ...payload, id: writing.id }])
       .select()
       .single();
-    if (error) console.error('Error inserting writing:', error);
+    if (error) {
+      console.error('Error inserting writing:', error);
+    } else {
+      console.log('Successfully inserted writing:', data);
+    }
   } else {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('writings')
       .update(payload)
-      .eq('id', writing.id);
-    if (error) console.error('Error updating writing:', error);
+      .eq('id', writing.id)
+      .select();
+    if (error) {
+      console.error('Error updating writing:', error);
+    } else {
+      console.log('Successfully updated writing:', data);
+    }
   }
 }
 
