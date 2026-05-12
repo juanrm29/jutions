@@ -46,7 +46,11 @@ export default function EditorPage() {
     ],
     content: '',
     editorProps: {
-      attributes: { class: 'tiptap-content' },
+      attributes: { 
+        class: 'tiptap-content',
+        spellcheck: 'false',
+        'data-gramm': 'false'
+      },
     },
     immediatelyRender: false,
     onUpdate: () => {
