@@ -495,8 +495,15 @@ body {
   .page-content { margin-left: 0; padding-top: 52px; }
   .mobile-header { display: flex; }
   
-  .notion-row { flex-wrap: wrap; }
+  .notion-row { flex-wrap: wrap; gap: 8px 12px; }
+  .notion-row-title { flex-basis: 100%; white-space: normal; line-height: 1.4; }
   .notion-row-meta { min-width: auto; text-align: left; }
+  
+  .controls-bar { flex-direction: column; align-items: stretch !important; }
+  .controls-bar > input { width: 100% !important; }
+  .controls-bar .genre-pills { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 4px; }
+  .controls-bar .view-toggle { margin-left: auto; }
+  .controls-bar-row { display: flex; width: 100%; gap: 12px; align-items: center; justify-content: space-between; }
 }
 
 .page-container {

@@ -81,7 +81,7 @@ function HomeContent() {
       </div>
 
       {/* Controls bar */}
-      <div className="animate-fade-up" style={{
+      <div className="animate-fade-up controls-bar" style={{
         display: 'flex', gap: 12, alignItems: 'center',
         marginBottom: 32, flexWrap: 'wrap',
       }}>
@@ -105,20 +105,21 @@ function HomeContent() {
         />
 
         {/* Genre pills */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+        <div className="genre-pills" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, scrollbarWidth: 'none' }}>
           {genres.map((g) => (
             <button
               key={g}
               onClick={() => setGenre(g)}
               className={genre === g ? 'view-toggle-btn active' : 'view-toggle-btn'}
-              style={{ borderRadius: 'var(--r-full)', border: '1px solid var(--hairline)', fontSize: 12, padding: '4px 12px' }}
+              style={{ borderRadius: 'var(--r-full)', border: '1px solid var(--hairline)', fontSize: 12, padding: '4px 12px', whiteSpace: 'nowrap' }}
             >
               {g === 'all' ? 'Semua' : GENRE_META[g].label}
             </button>
           ))}
         </div>
 
-        {/* Sort */}
+        <div className="controls-bar-row">
+          {/* Sort */}
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortMode)}
@@ -151,6 +152,7 @@ function HomeContent() {
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           </button>
+        </div>
         </div>
       </div>
 
