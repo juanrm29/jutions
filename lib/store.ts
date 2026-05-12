@@ -20,7 +20,7 @@ export async function getWritings(): Promise<Writing[]> {
   return data.map((row: any) => ({
     id: row.id,
     title: row.title,
-    excerpt: row.excerpt || '',
+    excerpt: row.excerpt || (row.content ? row.content.slice(0, 160).trim() + (row.content.length > 160 ? '...' : '') : ''),
     content: row.content,
     genre: row.genre,
     emoji: row.emoji,
@@ -44,7 +44,7 @@ export async function getWritingById(id: string): Promise<Writing | undefined> {
   return {
     id: data.id,
     title: data.title,
-    excerpt: data.excerpt || '',
+    excerpt: data.excerpt || (data.content ? data.content.slice(0, 160).trim() + (data.content.length > 160 ? '...' : '') : ''),
     content: data.content,
     genre: data.genre,
     emoji: data.emoji,
