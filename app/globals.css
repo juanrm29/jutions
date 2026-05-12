@@ -488,22 +488,177 @@ body {
   animation: fadeIn 0.2s ease;
 }
 
+/* ═══ Tablet (≤ 1024px) ═══ */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 220px; }
+
+  .page-container {
+    padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 24px) 100px;
+  }
+  .reader-container {
+    padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 24px) 100px;
+  }
+
+  /* Tighter header */
+  .glass-header { padding: 8px 16px; }
+
+  /* Floating toolbar wraps on tablet */
+  .floating-toolbar {
+    flex-wrap: wrap;
+    border-radius: var(--r-md);
+    width: auto;
+  }
+}
+
+/* ═══ Mobile (≤ 768px) ═══ */
 @media (max-width: 768px) {
+  /* Sidebar collapses to drawer */
   .sidebar { transform: translateX(-100%); z-index: 50; }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
+
+  /* Page shifts up to make room for mobile header */
   .page-content { margin-left: 0; padding-top: 52px; }
   .mobile-header { display: flex; }
-  
-  .notion-row { flex-wrap: wrap; gap: 8px 12px; }
-  .notion-row-title { flex-basis: 100%; white-space: normal; line-height: 1.4; }
-  .notion-row-meta { min-width: auto; text-align: left; }
-  
-  .controls-bar { flex-direction: column; align-items: stretch !important; }
-  .controls-bar > input { width: 100% !important; }
-  .controls-bar .genre-pills { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 4px; }
-  .controls-bar .view-toggle { margin-left: auto; }
-  .controls-bar-row { display: flex; width: 100%; gap: 12px; align-items: center; justify-content: space-between; }
+
+  /* Page containers */
+  .page-container {
+    padding: 20px 16px 80px;
+  }
+  .reader-container {
+    padding: 20px 16px 80px;
+  }
+
+  /* Glass header */
+  .glass-header {
+    padding: 8px 12px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* List rows */
+  .notion-row { flex-wrap: wrap; gap: 6px 12px; padding: 10px 10px; }
+  .notion-row-title { flex-basis: 100%; white-space: normal; line-height: 1.4; font-size: 14px; }
+  .notion-row-meta { min-width: auto; text-align: left; font-size: 12px; }
+
+  /* Controls bar — mobile overrides */
+  .controls-row1 {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  .controls-search {
+    width: 100% !important;
+    flex-shrink: unset !important;
+  }
+  /* Spacer div hides on mobile */
+  .controls-row1 > div:empty { display: none; }
+
+  /* Genre pills scrollable on mobile */
+  .genre-pills {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .genre-pills::-webkit-scrollbar { display: none; }
+
+
+  /* Editor floating toolbar — scrollable strip */
+  .floating-toolbar {
+    position: sticky;
+    top: 60px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    border-radius: var(--r-md);
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    gap: 2px;
+    margin-bottom: 20px;
+  }
+  .toolbar-btn { width: 28px; height: 28px; font-size: 12px; flex-shrink: 0; }
+
+  /* Editor header button overflow */
+  .editor-header-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Card grid */
+  .writing-card { padding: 16px; }
+
+  /* Prose */
+  .prose { font-size: 15px; }
+  .prose h1 { font-size: 1.6rem; }
+  .prose h2 { font-size: 1.3rem; }
+
+  /* Modal */
+  .modal-content { padding: 24px 20px; }
+
+  /* Login input full width */
+  .login-input { width: 100%; max-width: 320px; }
+
+  /* Command palette */
+  .cmd-palette { margin: 0 12px; }
+  .cmd-overlay { padding-top: 10vh; }
+}
+
+/* ═══ Small Mobile (≤ 480px) ═══ */
+@media (max-width: 480px) {
+  /* Sidebar full width on very small screens */
+  .sidebar { width: 100%; }
+
+  .glass-header {
+    padding: 6px 10px;
+    min-height: 44px;
+  }
+
+  /* Page header title */
+  .linear-title { font-size: clamp(22px, 6vw, 36px); }
+
+  /* Stack header actions vertically in read page */
+  .glass-header > div:last-child {
+    gap: 4px;
+  }
+  .btn-secondary, .btn-primary {
+    font-size: 11px !important;
+    padding: 5px 8px !important;
+  }
+
+  /* Cards single column always */
+  [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tags wrap nicely */
+  .tag-chip { font-size: 11px; padding: 3px 10px; }
+
+  /* Genre badge smaller */
+  .genre-badge { font-size: 11px; padding: 3px 8px; }
+
+  /* Controls bar row full width */
+  .controls-bar-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .view-toggle { margin-left: auto; }
+
+  /* Floating toolbar smaller buttons */
+  .floating-toolbar { gap: 1px; padding: 4px 6px; }
+  .toolbar-btn { width: 26px; height: 26px; font-size: 11px; }
+  .toolbar-divider { margin: 3px 4px; }
+
+  /* Prose tighter */
+  .prose { font-size: 14px; line-height: 1.65; }
+  .page-container, .reader-container { padding: 16px 14px 60px; }
+
+  /* Modal full width */
+  .modal-content { width: 95%; padding: 20px 16px; }
+
+  /* Hide word count in editor header on very small screens */
+  .editor-header-actions > span:first-child { display: none; }
 }
 
 .page-container {

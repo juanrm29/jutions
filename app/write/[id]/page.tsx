@@ -190,35 +190,35 @@ export default function EditorPage() {
     <div style={{ minHeight: '100vh' }}>
       {/* Top bar */}
       <header className="glass-header">
-        <Link href="/" className="btn-ghost" style={{ fontSize: 13, padding: '4px 8px', marginLeft: -8 }}>
+        <Link href="/" className="btn-ghost" style={{ fontSize: 13, padding: '4px 8px', marginLeft: -8, flexShrink: 0 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           Kembali
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, color: 'var(--stone)' }}>
+        <div className="editor-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
+          <span style={{ fontSize: 12, color: 'var(--stone)', whiteSpace: 'nowrap' }}>
             {wordCount} kata · {calcReadTime(getContentText())} min
           </span>
-          <span style={{ fontSize: 12, color: saveStatus === 'saved' ? 'var(--primary)' : 'var(--stone)' }}>
+          <span style={{ fontSize: 12, color: saveStatus === 'saved' ? 'var(--primary)' : 'var(--stone)', whiteSpace: 'nowrap' }}>
             {saveStatus === 'saving' ? '💾 Menyimpan...' : saveStatus === 'saved' ? '☁️ Tersimpan' : ''}
           </span>
 
           {/* Publish toggle */}
           <button
             className={published ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: 12, padding: '4px 12px' }}
+            style={{ fontSize: 12, padding: '4px 10px', whiteSpace: 'nowrap' }}
             onClick={() => setPublished(!published)}
           >
             {published ? '✓ Published' : 'Draft'}
           </button>
 
-          <button className="btn-primary" style={{ fontSize: 12, padding: '5px 14px' }} onClick={handleSave}>
+          <button className="btn-primary" style={{ fontSize: 12, padding: '5px 12px', whiteSpace: 'nowrap' }} onClick={handleSave}>
             Simpan
           </button>
 
           <button
             className={zenMode ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: 12, padding: '4px 8px' }}
+            style={{ fontSize: 12, padding: '4px 8px', flexShrink: 0 }}
             onClick={() => setZenMode(!zenMode)}
             title="Toggle Zen Mode"
           >
@@ -231,7 +231,7 @@ export default function EditorPage() {
               <button className="btn-icon" onClick={() => setShowMore(!showMore)}>···</button>
               {showMore && (
                 <div style={{
-                  position: 'absolute', right: 0, top: 32,
+                  position: 'absolute', right: 0, top: 36,
                   background: 'var(--canvas)', border: '1px solid var(--hairline)',
                   borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-md)',
                   padding: 4, minWidth: 140, zIndex: 40,

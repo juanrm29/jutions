@@ -80,79 +80,94 @@ function HomeContent() {
         </p>
       </div>
 
-      {/* Controls bar */}
-      <div className="animate-fade-up controls-bar" style={{
-        display: 'flex', gap: 12, alignItems: 'center',
-        marginBottom: 32, flexWrap: 'wrap',
-      }}>
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Cari..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: '8px 14px', borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--hairline)',
-            fontSize: 13, background: 'var(--canvas)',
-            color: 'var(--ink)', outline: 'none',
-            fontFamily: 'var(--font-sans)', width: 220,
-            boxShadow: 'var(--shadow-sm)',
-            transition: 'all 0.2s ease',
-          }}
-          onFocus={(e) => e.target.style.borderColor = 'var(--stone)'}
-          onBlur={(e) => e.target.style.borderColor = 'var(--hairline)'}
-        />
+      {/* Controls bar — two rows */}
+      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
+        {/* Row 1: search + sort + view */}
+        <div className="controls-row1" style={{
+          display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10,
+        }}>
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Cari tulisan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="controls-search"
+            style={{
+              padding: '8px 14px', borderRadius: 'var(--r-sm)',
+              border: '1px solid var(--hairline)',
+              fontSize: 13, background: 'var(--canvas)',
+              color: 'var(--ink)', outline: 'none',
+              fontFamily: 'var(--font-sans)', width: 220,
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'all 0.2s ease', flexShrink: 0,
+            }}
+            onFocus={(e) => e.target.style.borderColor = 'var(--stone)'}
+            onBlur={(e) => e.target.style.borderColor = 'var(--hairline)'}
+          />
 
-        {/* Genre pills */}
-        <div className="genre-pills" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1, scrollbarWidth: 'none' }}>
+          <div style={{ flex: 1 }} />
+
+          {/* Sort */}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortMode)}
+            style={{
+              padding: '8px 12px', borderRadius: 'var(--r-sm)',
+              border: '1px solid var(--hairline)',
+              fontSize: 13, background: 'var(--canvas)',
+              color: 'var(--ink)', fontFamily: 'var(--font-sans)',
+              outline: 'none', cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)', flexShrink: 0,
+            }}
+          >
+            <option value="newest">Terbaru</option>
+            <option value="oldest">Terlama</option>
+            <option value="alpha">A-Z</option>
+            <option value="genre">Genre</option>
+          </select>
+
+          {/* View toggle */}
+          <div className="view-toggle" style={{ flexShrink: 0 }}>
+            <button
+              className={`view-toggle-btn ${view === 'list' ? 'active' : ''}`}
+              onClick={() => setView('list')}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+            <button
+              className={`view-toggle-btn ${view === 'card' ? 'active' : ''}`}
+              onClick={() => setView('card')}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: genre pills — single scrollable row */}
+        <div
+          className="genre-pills"
+          style={{
+            display: 'flex', gap: 6,
+            flexWrap: 'nowrap', overflowX: 'auto',
+            scrollbarWidth: 'none', paddingBottom: 2,
+          }}
+        >
           {genres.map((g) => (
             <button
               key={g}
               onClick={() => setGenre(g)}
               className={genre === g ? 'view-toggle-btn active' : 'view-toggle-btn'}
-              style={{ borderRadius: 'var(--r-full)', border: '1px solid var(--hairline)', fontSize: 12, padding: '4px 12px', whiteSpace: 'nowrap' }}
+              style={{
+                borderRadius: 'var(--r-full)',
+                border: '1px solid var(--hairline)',
+                fontSize: 12, padding: '4px 14px',
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}
             >
               {g === 'all' ? 'Semua' : GENRE_META[g].label}
             </button>
           ))}
-        </div>
-
-        <div className="controls-bar-row">
-          {/* Sort */}
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortMode)}
-          style={{
-            padding: '8px 12px', borderRadius: 'var(--r-sm)',
-            border: '1px solid var(--hairline)',
-            fontSize: 13, background: 'var(--canvas)',
-            color: 'var(--ink)', fontFamily: 'var(--font-sans)',
-            outline: 'none', cursor: 'pointer',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-        >
-          <option value="newest">Terbaru</option>
-          <option value="oldest">Terlama</option>
-          <option value="alpha">A-Z</option>
-          <option value="genre">Genre</option>
-        </select>
-
-        {/* View toggle */}
-        <div className="view-toggle">
-          <button
-            className={`view-toggle-btn ${view === 'list' ? 'active' : ''}`}
-            onClick={() => setView('list')}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-          </button>
-          <button
-            className={`view-toggle-btn ${view === 'card' ? 'active' : ''}`}
-            onClick={() => setView('card')}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          </button>
-        </div>
         </div>
       </div>
 
