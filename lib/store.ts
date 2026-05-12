@@ -70,9 +70,8 @@ export async function getGenreCounts(): Promise<Record<string, number>> {
 }
 
 export async function saveWriting(writing: Writing): Promise<void> {
-  const isNew = !writing.id; // Or we can check if it exists
-
   const payload = {
+    id: writing.id,
     title: writing.title,
     excerpt: writing.excerpt,
     content: writing.content,
@@ -81,31 +80,19 @@ export async function saveWriting(writing: Writing): Promise<void> {
     tags: JSON.stringify(writing.tags),
     published: writing.published,
     readTime: writing.readTime,
+    created_at: writing.createdAt || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
-  if (isNew) {
-    const { data, error } = await supabase
-      .from('writings')
-      .insert([{ ...payload, id: writing.id }])
-      .select()
-      .single();
-    if (error) {
-      console.error('Error inserting writing:', error);
-    } else {
-      console.log('Successfully inserted writing:', data);
-    }
+  const { data, error } = await supabase
+    .from('writings')
+    .upsert([payload])
+    .select();
+
+  if (error) {
+    console.error('Error upserting writing:', error);
   } else {
-    const { data, error } = await supabase
-      .from('writings')
-      .update(payload)
-      .eq('id', writing.id)
-      .select();
-    if (error) {
-      console.error('Error updating writing:', error);
-    } else {
-      console.log('Successfully updated writing:', data);
-    }
+    console.log('Successfully upserted writing:', data);
   }
 }
 
