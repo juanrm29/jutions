@@ -94,6 +94,7 @@ export default function CommandPalette() {
             ref={inputRef}
             className="cmd-input"
             placeholder="Cari tulisan atau jalankan perintah..."
+            aria-label="Cari tulisan atau jalankan perintah"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             onKeyDown={handleKeyDown}
