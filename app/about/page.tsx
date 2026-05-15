@@ -4,6 +4,40 @@ import { useState, useEffect } from 'react';
 import { getWritings, getAboutContent, saveAboutContent } from '../../lib/store';
 import { Writing, GENRE_META } from '../../lib/types';
 import { isAdmin } from '../../lib/auth';
+import ScrollReveal from '../components/ScrollReveal';
+
+function AnimatedCounter({ value }: { value: number | string }) {
+  const [count, setCount] = useState(0);
+  const numericValue = typeof value === 'string' ? parseInt(value.replace(/\D/g, '')) : value;
+  
+  useEffect(() => {
+    if (isNaN(numericValue)) return;
+    let start = 0;
+    const end = numericValue;
+    if (start === end) {
+      setCount(end);
+      return;
+    }
+    const duration = 1500;
+    let startTime: number | null = null;
+    
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(easeProgress * end));
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+    requestAnimationFrame(animate);
+  }, [numericValue]);
+
+  if (typeof value === 'string' && isNaN(numericValue)) return <>{value}</>;
+  return <>{count.toLocaleString('id-ID')}</>;
+}
 
 export default function AboutPage() {
   const [writings, setWritings] = useState<Writing[]>([]);
@@ -73,7 +107,7 @@ export default function AboutPage() {
       </div>
 
       {/* Intro */}
-      <div className="prose animate-fade-up" style={{ marginBottom: 64 }}>
+      <ScrollReveal className="prose animate-fade-up" style={{ marginBottom: 64 }}>
         {isEditing ? (
           <textarea
             value={aboutContent}
@@ -97,10 +131,10 @@ export default function AboutPage() {
             <p key={i} style={{ color: 'var(--slate)', lineHeight: 1.7 }}>{para}</p>
           ))
         )}
-      </div>
+      </ScrollReveal>
 
       {/* Stats */}
-      <div className="animate-fade-up" style={{ marginBottom: 64 }}>
+      <ScrollReveal className="animate-fade-up" style={{ marginBottom: 64 }}>
         <h2 style={{
           fontSize: 12, fontWeight: 600, letterSpacing: '0.05em',
           textTransform: 'uppercase', color: 'var(--stone)',
@@ -122,16 +156,16 @@ export default function AboutPage() {
                 fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em',
                 color: 'var(--ink-deep)', marginBottom: 6,
               }}>
-                {s.value}
+                <AnimatedCounter value={s.value} />
               </div>
               <div style={{ fontSize: 13, color: 'var(--stone)', fontWeight: 500 }}>{s.label}</div>
             </div>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Activity Heatmap */}
-      <div className="animate-fade-up" style={{ marginBottom: 64 }}>
+      <ScrollReveal className="animate-fade-up" style={{ marginBottom: 64 }}>
         <h2 style={{
           fontSize: 12, fontWeight: 600, letterSpacing: '0.05em',
           textTransform: 'uppercase', color: 'var(--stone)',
@@ -143,29 +177,30 @@ export default function AboutPage() {
           padding: 24, borderRadius: 'var(--r-card)',
           border: '1px solid var(--hairline)',
           background: 'var(--surface)',
+          overflowX: 'auto'
         }}>
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)',
-            gap: 4, width: '100%',
+            display: 'grid', gridTemplateRows: 'repeat(7, 1fr)', gridAutoFlow: 'column',
+            gap: 4, width: 'max-content',
           }}>
             {heatmapDays.map((day, i) => (
               <div key={i} title={`${day.count} tulisan pada ${day.date}`} style={{
-                aspectRatio: '1/1', width: '100%', borderRadius: 2,
-                background: day.count > 0 ? 'var(--ink)' : 'var(--hairline-strong)',
-                opacity: day.count > 0 ? Math.min(0.5 + (day.count * 0.2), 1) : 0.5,
+                width: 14, height: 14, borderRadius: 2,
+                background: day.count > 0 ? 'var(--genre-novel)' : 'var(--hairline-strong)',
+                opacity: day.count > 0 ? Math.min(0.2 + (day.count * 0.3), 1) : 0.2,
                 transition: 'opacity 0.2s ease', cursor: 'pointer',
               }} onMouseEnter={(e) => {
                 if (day.count > 0) e.currentTarget.style.opacity = '1';
               }} onMouseLeave={(e) => {
-                if (day.count > 0) e.currentTarget.style.opacity = String(Math.min(0.5 + (day.count * 0.2), 1));
+                if (day.count > 0) e.currentTarget.style.opacity = String(Math.min(0.2 + (day.count * 0.3), 1));
               }} />
             ))}
           </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Filosofi */}
-      <div className="animate-fade-up" style={{
+      <ScrollReveal className="animate-fade-up" style={{
         padding: 32, borderRadius: 'var(--r-card)',
         background: 'var(--surface)',
         border: '1px solid var(--hairline)',
@@ -183,7 +218,7 @@ export default function AboutPage() {
         }}>
           &ldquo;Menulis bukan soal menghasilkan produk jadi. Ia lebih seperti percakapan dengan diri sendiri, dan seperti kebanyakan percakapan, ia tidak selalu butuh kesimpulan.&rdquo;
         </blockquote>
-      </div>
+      </ScrollReveal>
     </div>
   );
 }

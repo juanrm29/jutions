@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { getWritings } from '../lib/store';
 import { Writing, Genre, GENRE_META } from '../lib/types';
 import { isAdmin } from '../lib/auth';
+import DailyPrompt from './components/DailyPrompt';
+import ScrollReveal from './components/ScrollReveal';
+import { SkeletonRow, SkeletonCard } from './components/SkeletonLoader';
 
 type SortMode = 'newest' | 'oldest' | 'alpha' | 'genre';
 type ViewMode = 'list' | 'card';
@@ -23,6 +26,7 @@ function HomeContent() {
   const genreParam = searchParams.get('genre') as Genre | null;
 
   const [writings, setWritings] = useState<Writing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewMode>('list');
   const [sort, setSort] = useState<SortMode>('newest');
   const [genre, setGenre] = useState<'all' | Genre>(genreParam || 'all');
@@ -30,7 +34,10 @@ function HomeContent() {
   const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
-    getWritings().then(setWritings);
+    getWritings().then(data => {
+      setWritings(data);
+      setLoading(false);
+    });
     setAdmin(isAdmin());
   }, []);
 
@@ -68,10 +75,42 @@ function HomeContent() {
 
   const genres: ('all' | Genre)[] = ['all', 'novel', 'cerpen', 'jurnal', 'esai', 'puisi', 'lainnya'];
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (view !== 'card') return;
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const tiltX = ((y - centerY) / centerY) * -5;
+    const tiltY = ((x - centerX) / centerX) * 5;
+    
+    card.style.setProperty('--tilt-x', `${tiltY}deg`);
+    card.style.setProperty('--tilt-y', `${tiltX}deg`);
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (view !== 'card') return;
+    const card = e.currentTarget;
+    card.style.setProperty('--tilt-x', `0deg`);
+    card.style.setProperty('--tilt-y', `0deg`);
+  };
+
   return (
     <div className="page-container">
+      {/* Animated gradient mesh hero */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '40vh',
+        background: 'radial-gradient(circle at 15% 50%, rgba(225, 29, 72, 0.05), transparent 50%), radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.05), transparent 50%)',
+        zIndex: -1, pointerEvents: 'none',
+        filter: 'blur(40px)',
+      }} />
+
       {/* Page header */}
-      <div className="animate-fade-up" style={{ marginBottom: 40 }}>
+      <div className="animate-fade-up" style={{ marginBottom: 40, position: 'relative' }}>
         <h1 className="linear-title" style={{ marginBottom: 8 }}>
           Semua Tulisan
         </h1>
@@ -80,8 +119,10 @@ function HomeContent() {
         </p>
       </div>
 
+      {admin && <DailyPrompt />}
+
       {/* Controls bar — two rows */}
-      <div className="animate-fade-up" style={{ marginBottom: 32 }}>
+      <ScrollReveal className="animate-fade-up" style={{ marginBottom: 32 }}>
         {/* Row 1: search + sort + view */}
         <div className="controls-row1" style={{
           display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10,
@@ -163,17 +204,39 @@ function HomeContent() {
                 border: '1px solid var(--hairline)',
                 fontSize: 12, padding: '4px 14px',
                 whiteSpace: 'nowrap', flexShrink: 0,
+                ...(genre === g && g !== 'all' ? { color: `var(--genre-${g})`, borderColor: `var(--genre-${g})` } : {})
               }}
             >
               {g === 'all' ? 'Semua' : GENRE_META[g].label}
             </button>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
+
+      {/* Loading Skeleton */}
+      {loading && view === 'list' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
+      )}
+
+      {loading && view === 'card' && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: 16, marginTop: 16,
+        }}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      )}
 
       {/* Empty state */}
-      {filtered.length === 0 && (
-        <div style={{
+      {!loading && filtered.length === 0 && (
+        <div className="animate-fade-up" style={{
           textAlign: 'center', padding: '100px 0',
           color: 'var(--stone)',
         }}>
@@ -192,74 +255,82 @@ function HomeContent() {
       )}
 
       {/* List view */}
-      {filtered.length > 0 && view === 'list' && (
+      {!loading && filtered.length > 0 && view === 'list' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {filtered.map((w) => (
-            <Link
-              key={w.id}
-              href={`/read/${w.id}`}
-              className="notion-row"
-            >
-              <span className="notion-row-title">{w.title}</span>
-              <span className="genre-badge" style={{ fontSize: 11, background: 'transparent' }}>
-                {GENRE_META[w.genre]?.label}
-              </span>
-              <span className="notion-row-meta" style={{ flex: '1 1 auto', textAlign: 'right' }}>
-                {w.readTime} min
-              </span>
-              <span className="notion-row-meta" style={{ textAlign: 'right' }}>
-                {new Date(w.createdAt).toLocaleDateString('id-ID', {
-                  day: 'numeric', month: 'short', year: 'numeric',
-                })}
-              </span>
-              {!w.published && (
-                <span style={{ fontSize: 11, color: 'var(--stone)', fontStyle: 'italic', paddingLeft: 8 }}>draft</span>
-              )}
-            </Link>
+          {filtered.map((w, i) => (
+            <ScrollReveal key={w.id} className={`stagger-${Math.min((i % 8) + 1, 8)}`}>
+              <Link
+                href={`/read/${w.id}`}
+                className="notion-row animate-fade-up"
+              >
+                <span className="notion-row-title">{w.title}</span>
+                <span className="genre-badge" style={{ fontSize: 11, background: 'transparent', color: `var(--genre-${w.genre})`, borderColor: `var(--genre-${w.genre})` }}>
+                  {GENRE_META[w.genre]?.label}
+                </span>
+                <span className="notion-row-meta" style={{ flex: '1 1 auto', textAlign: 'right' }}>
+                  {w.readTime} min
+                </span>
+                <span className="notion-row-meta" style={{ textAlign: 'right' }}>
+                  {new Date(w.createdAt).toLocaleDateString('id-ID', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                  })}
+                </span>
+                {!w.published && (
+                  <span style={{ fontSize: 11, color: 'var(--stone)', fontStyle: 'italic', paddingLeft: 8 }}>draft</span>
+                )}
+              </Link>
+            </ScrollReveal>
           ))}
         </div>
       )}
 
       {/* Card view */}
-      {filtered.length > 0 && view === 'card' && (
+      {!loading && filtered.length > 0 && view === 'card' && (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: 16, marginTop: 16,
         }}>
-          {filtered.map((w) => (
-            <Link key={w.id} href={`/read/${w.id}`} className="writing-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <span className="genre-badge" style={{ fontSize: 11, background: 'var(--canvas)' }}>
-                  {GENRE_META[w.genre]?.label}
-                </span>
-                <span style={{ fontSize: 12, color: 'var(--stone)', marginLeft: 'auto' }}>
-                  {w.readTime} min
-                </span>
-              </div>
-              <h3 style={{
-                fontSize: 16, fontWeight: 600, color: 'var(--ink-deep)',
-                letterSpacing: '-0.02em', marginBottom: 8, lineHeight: 1.4,
-              }}>
-                {w.title}
-              </h3>
-              <p style={{
-                fontSize: 14, color: 'var(--slate)', lineHeight: 1.6,
-                display: '-webkit-box', WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                flex: 1,
-              }}>
-                {w.excerpt}
-              </p>
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--hairline)', fontSize: 12, color: 'var(--stone)', display: 'flex', justifyContent: 'space-between' }}>
-                <span>
-                  {new Date(w.createdAt).toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'long', year: 'numeric',
-                  })}
-                </span>
-                {!w.published && <span style={{ fontStyle: 'italic' }}>Draft</span>}
-              </div>
-            </Link>
+          {filtered.map((w, i) => (
+            <ScrollReveal key={w.id} className={`stagger-${Math.min((i % 8) + 1, 8)}`}>
+              <Link 
+                href={`/read/${w.id}`} 
+                className="writing-card tilt-card animate-fade-up"
+                onMouseMove={(e) => handleMouseMove(e, w.id)}
+                onMouseLeave={handleMouseLeave}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span className="genre-badge" style={{ fontSize: 11, background: 'var(--canvas)', color: `var(--genre-${w.genre})`, borderColor: `var(--genre-${w.genre})` }}>
+                    {GENRE_META[w.genre]?.label}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--stone)', marginLeft: 'auto' }}>
+                    {w.readTime} min
+                  </span>
+                </div>
+                <h3 style={{
+                  fontSize: 16, fontWeight: 600, color: 'var(--ink-deep)',
+                  letterSpacing: '-0.02em', marginBottom: 8, lineHeight: 1.4,
+                }}>
+                  {w.title}
+                </h3>
+                <p style={{
+                  fontSize: 14, color: 'var(--slate)', lineHeight: 1.6,
+                  display: '-webkit-box', WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                  flex: 1,
+                }}>
+                  {w.excerpt}
+                </p>
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--hairline)', fontSize: 12, color: 'var(--stone)', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>
+                    {new Date(w.createdAt).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })}
+                  </span>
+                  {!w.published && <span style={{ fontStyle: 'italic' }}>Draft</span>}
+                </div>
+              </Link>
+            </ScrollReveal>
           ))}
         </div>
       )}

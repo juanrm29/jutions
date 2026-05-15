@@ -196,12 +196,6 @@ export default function EditorPage() {
         </Link>
 
         <div className="editor-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-end' }}>
-          <span style={{ fontSize: 12, color: 'var(--stone)', whiteSpace: 'nowrap' }}>
-            {wordCount} kata · {calcReadTime(getContentText())} min
-          </span>
-          <span style={{ fontSize: 12, color: saveStatus === 'saved' ? 'var(--primary)' : 'var(--stone)', whiteSpace: 'nowrap' }}>
-            {saveStatus === 'saving' ? '💾 Menyimpan...' : saveStatus === 'saved' ? '☁️ Tersimpan' : ''}
-          </span>
 
           {/* Publish toggle */}
           <button
@@ -326,97 +320,97 @@ export default function EditorPage() {
         {editor && (
           <div className="floating-toolbar">
             <button
-              className={`toolbar-btn ${editor.isActive('bold') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('bold') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleBold().run()}
-              title="Bold"
+              data-tooltip="Ctrl+B"
             >
               <strong>B</strong>
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('italic') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('italic') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              title="Italic"
+              data-tooltip="Ctrl+I"
             >
               <em>I</em>
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('underline') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('underline') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleUnderline().run()}
-              title="Underline"
+              data-tooltip="Ctrl+U"
             >
               <u>U</u>
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('strike') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('strike') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleStrike().run()}
-              title="Strikethrough"
+              data-tooltip="Ctrl+Shift+X"
             >
               <s>S</s>
             </button>
             <div className="toolbar-divider" />
             <button
-              className={`toolbar-btn ${editor.isActive('heading', { level: 1 }) ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('heading', { level: 1 }) ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-              title="Heading 1"
+              data-tooltip="Ctrl+Alt+1"
             >
               H1
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('heading', { level: 2 }) ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('heading', { level: 2 }) ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-              title="Heading 2"
+              data-tooltip="Ctrl+Alt+2"
             >
               H2
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('heading', { level: 3 }) ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('heading', { level: 3 }) ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-              title="Heading 3"
+              data-tooltip="Ctrl+Alt+3"
             >
               H3
             </button>
             <div className="toolbar-divider" />
             <button
-              className={`toolbar-btn ${editor.isActive('bulletList') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('bulletList') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              title="Bullet List"
+              data-tooltip="Ctrl+Shift+8"
             >
               •
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('orderedList') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('orderedList') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              title="Ordered List"
+              data-tooltip="Ctrl+Shift+7"
             >
               1.
             </button>
             <div className="toolbar-divider" />
             <button
-              className={`toolbar-btn ${editor.isActive('blockquote') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('blockquote') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              title="Quote"
+              data-tooltip="Ctrl+Shift+B"
             >
               &ldquo;
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('codeBlock') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('codeBlock') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              title="Code Block"
+              data-tooltip="Ctrl+Alt+C"
             >
               {'</>'}
             </button>
             <button
-              className={`toolbar-btn ${editor.isActive('highlight') ? 'active' : ''}`}
+              className={`toolbar-btn kbd-tooltip ${editor.isActive('highlight') ? 'active' : ''}`}
               onClick={() => editor.chain().focus().toggleHighlight().run()}
-              title="Highlight"
+              data-tooltip="Ctrl+Shift+H"
             >
               🖍
             </button>
             <div className="toolbar-divider" />
             <button
-              className="toolbar-btn"
+              className="toolbar-btn kbd-tooltip"
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              title="Divider"
+              data-tooltip="---"
             >
               ─
             </button>
@@ -451,10 +445,28 @@ export default function EditorPage() {
             }}
           />
         </div>
-
         <p style={{ marginTop: 12, fontSize: 11, color: 'var(--stone)' }}>
           Ctrl+S untuk simpan cepat · Auto-save setiap 3 detik
         </p>
+      </div>
+
+      {/* Stats Bar */}
+      <div className="stats-bar">
+        <div className="stats-bar-group">
+          <div className="stats-bar-item">
+            <span style={{ fontWeight: 600 }}>{wordCount}</span> kata
+          </div>
+          <div className="stats-bar-item">
+            <span>{calcReadTime(getContentText())} min</span> baca
+          </div>
+        </div>
+        <div className="stats-bar-group">
+          <div className="stats-bar-item">
+            <span style={{ color: saveStatus === 'saved' ? 'var(--primary)' : 'var(--stone)' }}>
+              {saveStatus === 'saving' ? '💾 Menyimpan...' : saveStatus === 'saved' ? '☁️ Tersimpan' : 'Auto-save aktif'}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

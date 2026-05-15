@@ -1,14 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import CommandPalette from './CommandPalette';
+import BackToTop from './BackToTop';
+import QuickDraft from './QuickDraft';
+import { isAdmin } from '../../lib/auth';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [admin, setAdmin] = useState(false);
+
+  useEffect(() => {
+    setAdmin(isAdmin());
+  }, []);
 
   return (
     <div className="app-shell">
+      {/* Visual noise texture overlay */}
+      <div className="noise-overlay" />
+
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <CommandPalette />
 
@@ -29,6 +40,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <main className="page-content">
         {children}
       </main>
+
+      {admin && <QuickDraft />}
+      <BackToTop />
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { getWritingById, getWritings, deleteWriting } from '../../../lib/store';
 import { Writing, GENRE_META } from '../../../lib/types';
 import { isAdmin } from '../../../lib/auth';
+import TypographyPanel from '../../components/TypographyPanel';
+import ScrollReveal from '../../components/ScrollReveal';
 
 export default function ReaderPage() {
   const params = useParams();
@@ -17,6 +19,7 @@ export default function ReaderPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [related, setRelated] = useState<Writing[]>([]);
+  const [immersive, setImmersive] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +41,23 @@ export default function ReaderPage() {
   }, [id]);
 
   useEffect(() => {
+    if (immersive) {
+      document.body.classList.add('reader-mode');
+    } else {
+      document.body.classList.remove('reader-mode');
+    }
+    return () => document.body.classList.remove('reader-mode');
+  }, [immersive]);
+
+  useEffect(() => {
+    if (!writing) return;
+    
+    // Restore scroll
+    const savedScroll = localStorage.getItem(`jution-scroll-${writing.id}`);
+    if (savedScroll) {
+      setTimeout(() => window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'auto' }), 100);
+    }
+
     const onScroll = () => {
       const el = contentRef.current;
       if (!el) return;
@@ -46,10 +66,14 @@ export default function ReaderPage() {
       if (total <= 0) { setProgress(100); return; }
       const scrolled = Math.abs(rect.top);
       setProgress(Math.min(100, (scrolled / total) * 100));
+      
+      // Save scroll
+      localStorage.setItem(`jution-scroll-${writing.id}`, window.scrollY.toString());
     };
+    
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [writing]);
 
   const handleDelete = () => {
     if (!writing) return;
@@ -90,7 +114,7 @@ export default function ReaderPage() {
       {/* Progress bar */}
       <div style={{
         position: 'fixed', top: 0, left: 0, height: 3, zIndex: 200,
-        width: `${progress}%`, background: 'var(--ink-deep)',
+        width: `${progress}%`, background: `var(--genre-${writing.genre}, var(--ink-deep))`,
         transition: 'width 0.15s ease-out',
       }} />
 
@@ -104,7 +128,18 @@ export default function ReaderPage() {
           <span style={{ color: 'var(--hairline-strong)' }}>/</span>
           <span style={{ color: 'var(--ink)' }}>{meta?.label}</span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button 
+            className={`btn-icon ${immersive ? 'active' : ''}`}
+            onClick={() => setImmersive(!immersive)}
+            aria-label="Toggle Immersive Mode"
+            style={{ fontSize: 16 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+          
+          <TypographyPanel />
+          
           <button className="btn-secondary" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => window.print()}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             PDF
@@ -166,7 +201,7 @@ export default function ReaderPage() {
             display: 'flex', gap: 12, alignItems: 'center',
             marginBottom: 48, flexWrap: 'wrap',
           }}>
-            <span className="genre-badge" style={{ fontSize: 12, background: 'var(--canvas)', color: 'var(--ink)' }}>
+            <span className="genre-badge" style={{ fontSize: 12, background: 'var(--canvas)', color: `var(--genre-${writing.genre})`, borderColor: `var(--genre-${writing.genre})` }}>
               {meta?.label}
             </span>
             <span style={{ fontSize: 14, color: 'var(--stone)' }}>
@@ -185,19 +220,23 @@ export default function ReaderPage() {
             {paragraphs.map((para, i) => {
               if (/^BAB\s|^---/.test(para)) {
                 return (
-                  <h2 key={i} id={`heading-${i}`} style={{
-                    fontSize: 14, fontWeight: 600, letterSpacing: '0.05em',
-                    textTransform: 'uppercase', color: 'var(--slate)',
-                    margin: '64px 0 32px', borderBottom: 'none', paddingBottom: 0
-                  }}>
-                    {para.replace(/^---\s*/, '')}
-                  </h2>
+                  <ScrollReveal key={i}>
+                    <h2 id={`heading-${i}`} style={{
+                      fontSize: 14, fontWeight: 600, letterSpacing: '0.05em',
+                      textTransform: 'uppercase', color: 'var(--slate)',
+                      margin: '64px 0 32px', borderBottom: 'none', paddingBottom: 0
+                    }}>
+                      {para.replace(/^---\s*/, '')}
+                    </h2>
+                  </ScrollReveal>
                 );
               }
               return (
-                <p key={i}>
-                  {para}
-                </p>
+                <ScrollReveal key={i}>
+                  <p>
+                    {para}
+                  </p>
+                </ScrollReveal>
               );
             })}
           </div>
