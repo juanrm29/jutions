@@ -10,15 +10,65 @@ import { isAdmin } from '../../lib/auth';
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
+  const [cursorType, setCursorType] = useState('default');
 
   useEffect(() => {
     setAdmin(isAdmin());
+    
+    // Custom cursor logic
+    document.body.classList.add('custom-cursor');
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+      
+      const target = e.target as HTMLElement;
+      if (!target) return;
+      
+      const computedCursor = window.getComputedStyle(target).cursor;
+      const tag = target.tagName.toLowerCase();
+      
+      if (computedCursor === 'pointer' || tag === 'button' || tag === 'a' || target.closest('button') || target.closest('a')) {
+        setCursorType('interactive');
+      } else if (computedCursor === 'text' || tag === 'p' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'input' || tag === 'textarea' || target.closest('.ProseMirror')) {
+        setCursorType('text');
+      } else {
+        setCursorType('default');
+      }
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.body.classList.remove('custom-cursor');
+    };
   }, []);
 
   return (
     <div className="app-shell">
+      {/* SVG Filters */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <filter id="goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+          <feBlend in="SourceGraphic" in2="goo" />
+        </filter>
+      </svg>
+
       {/* Visual noise texture overlay */}
       <div className="noise-overlay" />
+      
+      {/* Mindblowing Phase 4 elements */}
+      <div className="ambient-aura">
+        <div 
+          className="ambient-aura-glow" 
+          style={{ left: cursorPos.x, top: cursorPos.y }} 
+        />
+      </div>
+      <div 
+        className={`fluid-cursor ${cursorType === 'interactive' ? 'hovering-interactive' : cursorType === 'text' ? 'hovering-text' : ''}`}
+        style={{ left: cursorPos.x, top: cursorPos.y }}
+      />
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <CommandPalette />

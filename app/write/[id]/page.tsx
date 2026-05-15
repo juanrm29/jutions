@@ -28,6 +28,7 @@ export default function EditorPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showGenrePicker, setShowGenrePicker] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [zenMode, setZenMode] = useState(false);
   const [writingId, setWritingId] = useState(isNew ? '' : id);
@@ -55,6 +56,24 @@ export default function EditorPage() {
     immediatelyRender: false,
     onUpdate: () => {
       setSaveStatus('idle');
+    },
+    onSelectionUpdate: ({ editor }) => {
+      if (typeof window === 'undefined') return;
+      
+      const children = editor.view.dom.children;
+      for (let i = 0; i < children.length; i++) {
+        children[i].classList.remove('is-active');
+      }
+      
+      try {
+        const { $from } = editor.state.selection;
+        const index = $from.index(0);
+        if (children[index]) {
+          children[index].classList.add('is-active');
+        }
+      } catch (e) {
+        console.error('Error setting active line:', e);
+      }
     },
   });
 
@@ -183,6 +202,9 @@ export default function EditorPage() {
   }, [zenMode]);
 
   const wordCount = getContentText().trim() ? getContentText().trim().split(/\s+/).length : 0;
+  const speakingTime = Math.max(1, Math.ceil(wordCount / 130));
+  const paragraphCount = getContentText().split('\n\n').filter(Boolean).length;
+  const density = wordCount > 0 ? Math.round(wordCount / Math.max(paragraphCount, 1)) : 0;
 
   if (!admin) return null;
 
@@ -418,7 +440,7 @@ export default function EditorPage() {
         )}
 
         {/* Tiptap editor */}
-        <div className="tiptap-editor">
+        <div className={`tiptap-editor ${zenMode ? 'theatre-mode' : ''}`}>
           <EditorContent editor={editor} />
         </div>
 
@@ -450,11 +472,38 @@ export default function EditorPage() {
         </p>
       </div>
 
-      {/* Stats Bar */}
       <div className="stats-bar">
         <div className="stats-bar-group">
-          <div className="stats-bar-item">
+          <div 
+            className="stats-bar-item"
+            onMouseEnter={() => setShowInsights(true)}
+            onMouseLeave={() => setShowInsights(false)}
+            style={{ position: 'relative', cursor: 'help' }}
+          >
             <span style={{ fontWeight: 600 }}>{wordCount}</span> kata
+
+            {showInsights && (
+              <div className="animate-fade-up" style={{
+                position: 'absolute', bottom: '100%', left: 0, marginBottom: 16,
+                background: 'var(--canvas)', border: '1px solid var(--hairline-strong)',
+                borderRadius: 'var(--r-md)', padding: 16, width: 200,
+                boxShadow: 'var(--shadow-lg)', color: 'var(--ink)'
+              }}>
+                <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone)', marginBottom: 12 }}>Text Insights</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--slate)' }}>Speaking Time</span>
+                  <span style={{ fontWeight: 500 }}>{speakingTime} min</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ color: 'var(--slate)' }}>Paragraphs</span>
+                  <span style={{ fontWeight: 500 }}>{paragraphCount}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'var(--slate)' }}>Density</span>
+                  <span style={{ fontWeight: 500 }}>{density} w/p</span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="stats-bar-item">
             <span>{calcReadTime(getContentText())} min</span> baca

@@ -20,7 +20,18 @@ export default function ReaderPage() {
   const [admin, setAdmin] = useState(false);
   const [related, setRelated] = useState<Writing[]>([]);
   const [immersive, setImmersive] = useState(false);
+  const [activeHeading, setActiveHeading] = useState<string>('');
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const paragraphs = writing?.content.split('\n\n').filter(Boolean) || [];
+  const headings = paragraphs
+    .map((para, i) => {
+      if (/^BAB\s|^---/.test(para)) {
+        return { id: `heading-${i}`, text: para.replace(/^---\s*/, '') };
+      }
+      return null;
+    })
+    .filter((h): h is { id: string; text: string } => Boolean(h));
 
   useEffect(() => {
     if (!id) return;
@@ -69,6 +80,16 @@ export default function ReaderPage() {
       
       // Save scroll
       localStorage.setItem(`jution-scroll-${writing.id}`, window.scrollY.toString());
+
+      // Scroll Spy
+      let current = '';
+      for (const heading of headings) {
+        const el = document.getElementById(heading.id);
+        if (el && el.getBoundingClientRect().top <= 100) {
+          current = heading.id;
+        }
+      }
+      if (current) setActiveHeading(current);
     };
     
     window.addEventListener('scroll', onScroll);
@@ -99,24 +120,32 @@ export default function ReaderPage() {
   }
 
   const meta = GENRE_META[writing.genre];
-  const paragraphs = writing.content.split('\n\n').filter(Boolean);
-  const headings = paragraphs
-    .map((para, i) => {
-      if (/^BAB\s|^---/.test(para)) {
-        return { id: `heading-${i}`, text: para.replace(/^---\s*/, '') };
-      }
-      return null;
-    })
-    .filter((h): h is { id: string; text: string } => Boolean(h));
 
   return (
     <>
-      {/* Progress bar */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, height: 3, zIndex: 200,
-        width: `${progress}%`, background: `var(--genre-${writing.genre}, var(--ink-deep))`,
-        transition: 'width 0.15s ease-out',
-      }} />
+      {/* Liquid Progress bar */}
+      <div className="liquid-progress-container">
+        <div 
+          className="liquid-progress-bar" 
+          style={{ width: `${progress}%`, background: `var(--genre-${writing.genre}, var(--ink-deep))` }} 
+        />
+      </div>
+
+      {/* Floating Exit Immersive Mode Button */}
+      {immersive && (
+        <button 
+          className="btn-icon exit-immersive-btn"
+          onClick={() => setImmersive(false)}
+          aria-label="Exit Immersive Mode"
+          style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+            background: 'var(--ink-deep)', color: 'var(--canvas)', borderRadius: 'var(--r-full)',
+            width: 44, height: 44, zIndex: 100, boxShadow: 'var(--shadow-lg)'
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+        </button>
+      )}
 
       {/* Top nav */}
       <header className="glass-header">
@@ -171,7 +200,7 @@ export default function ReaderPage() {
                   <a
                     key={h.id}
                     href={`#${h.id}`}
-                    className="toc-link"
+                    className={`toc-link ${activeHeading === h.id ? 'active' : ''}`}
                     onClick={(e) => {
                       e.preventDefault();
                       const el = document.getElementById(h.id);
