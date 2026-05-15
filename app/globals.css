@@ -1140,11 +1140,18 @@ body.zen-mode .stats-bar:hover {
 [data-theme="dark"] .ambient-aura { opacity: 0.08; }
 
 /* 🪄 Contextual Minimalist Cursor */
-body.custom-cursor {
-  cursor: none !important;
+@media (hover: hover) and (pointer: fine) {
+  body.custom-cursor {
+    cursor: none !important;
+  }
+  body.custom-cursor * {
+    cursor: none !important;
+  }
 }
-body.custom-cursor * {
-  cursor: none !important;
+@media (hover: none) or (pointer: coarse), (max-width: 768px) {
+  .fluid-cursor {
+    display: none !important;
+  }
 }
 .fluid-cursor {
   position: fixed;
