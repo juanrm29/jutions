@@ -1,17 +1,38 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getWritingById } from '../../../lib/store';
+import { createClient } from '@supabase/supabase-js';
 import ReaderClient from './ReaderClient';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const getWritingByIdServer = async (id: string) => {
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { data } = await supabase.from('writings').select('*').eq('id', id).single();
+  
+  if (!data) return undefined;
+  return {
+    id: data.id,
+    title: data.title,
+    excerpt: data.excerpt || (data.content ? data.content.slice(0, 160).trim() + (data.content.length > 160 ? '...' : '') : ''),
+    content: data.content,
+    genre: data.genre,
+    emoji: data.emoji,
+    tags: data.tags ? JSON.parse(data.tags) : [],
+    published: data.published,
+    readTime: data.readTime,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+};
 
 type Props = {
   params: { id: string };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // In Next.js 14, params is a promise in some contexts, but let's assume standard synchronous usage or wait if needed.
-  // We'll await it to be safe for Next.js 14+ if params is a promise
-  const { id } = params;
-  const writing = await getWritingById(id);
+  const { id } = await Promise.resolve(params); // await params to support Next.js 15+ safely
+  const writing = await getWritingByIdServer(id);
 
   if (!writing) {
     return {
@@ -38,10 +59,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ReadPage({ params }: Props) {
-  const { id } = params;
+  const { id } = await Promise.resolve(params);
   
-  // Optional: We can fetch here to trigger notFound() server-side
-  const writing = await getWritingById(id);
+  const writing = await getWritingByIdServer(id);
   if (!writing) {
     notFound();
   }
