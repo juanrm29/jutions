@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { getWritingById, getWritings, deleteWriting } from '../../../lib/store';
@@ -20,20 +20,38 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
   const [immersive, setImmersive] = useState(false);
   const [activeHeading, setActiveHeading] = useState<string>('');
   const [spotlight, setSpotlight] = useState(false);
-  const [activePara, setActivePara] = useState(-1);
   const [completed, setCompleted] = useState(false);
   const [remainingTime, setRemainingTime] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const paragraphs = writing?.content.split('\n\n').filter(Boolean) || [];
-  const headings = paragraphs
-    .map((para, i) => {
-      if (/^BAB\s|^---/.test(para)) {
-        return { id: `heading-${i}`, text: para.replace(/^---\s*/, '') };
+  const { modifiedContent, headings } = useMemo(() => {
+    if (!writing?.content) return { modifiedContent: '', headings: [] };
+    
+    let html = writing.content;
+    if (!html.includes('<p>') && !html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>')) {
+      html = html.split('\n\n').filter(Boolean).map((p) => {
+        if (/^BAB\s|^---/.test(p)) {
+          return `<h2>${p.replace(/^---\s*/, '')}</h2>`;
+        }
+        return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+      }).join('');
+    }
+
+    const extracted: {id: string, text: string}[] = [];
+    let i = 0;
+    const modified = html.replace(/<h([1-3])([^>]*)>(.*?)<\/h\1>/gi, (match, level, attrs, text) => {
+      const id = `heading-${i}`;
+      extracted.push({ id, text: text.replace(/<[^>]+>/g, '') });
+      i++;
+      let extraAttrs = '';
+      if (level === '2') {
+         extraAttrs = ' style="font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--slate); margin: 64px 0 32px; border-bottom: none; padding-bottom: 0;"';
       }
-      return null;
-    })
-    .filter((h): h is { id: string; text: string } => Boolean(h));
+      return `<h${level} id="${id}"${attrs}${extraAttrs}>${text}</h${level}>`;
+    });
+
+    return { modifiedContent: modified, headings: extracted };
+  }, [writing?.content]);
 
   useEffect(() => {
     if (!id) return;
@@ -108,7 +126,15 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
               closest = i;
             }
           }
-          setActivePara(closest);
+          for (let i = 0; i < children.length; i++) {
+            if (i === closest) {
+              children[i].classList.add('para-active');
+              children[i].classList.remove('para-dim');
+            } else {
+              children[i].classList.add('para-dim');
+              children[i].classList.remove('para-active');
+            }
+          }
         }
       }
       
@@ -128,6 +154,46 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
     
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
+  }, [writing, spotlight]);
+
+  useEffect(() => {
+    if (!spotlight) {
+      const proseEl = contentRef.current?.querySelector('.prose');
+      if (proseEl) {
+        const children = proseEl.children;
+        for (let i = 0; i < children.length; i++) {
+          children[i].classList.remove('para-active', 'para-dim');
+        }
+      }
+    } else {
+      window.dispatchEvent(new Event('scroll'));
+    }
+  }, [spotlight]);
+
+  useEffect(() => {
+    const proseEl = contentRef.current?.querySelector('.prose');
+    if (!proseEl) return;
+    
+    const headingEls = proseEl.querySelectorAll('h1, h2, h3');
+    headingEls.forEach(h => {
+      h.classList.add('heading-reveal');
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    Array.from(proseEl.children).forEach(child => {
+      child.classList.add('reveal');
+      observer.observe(child);
+    });
+
+    return () => observer.disconnect();
   }, [writing]);
 
   const handleDelete = () => {
@@ -190,7 +256,7 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
 
           <button
             className={`btn-icon ${spotlight ? 'active' : ''}`}
-            onClick={() => { setSpotlight(!spotlight); if (spotlight) setActivePara(-1); }}
+            onClick={() => { setSpotlight(!spotlight); }}
             aria-label="Toggle Spotlight Mode"
             title="Mode Sorotan"
             style={{ fontSize: 16 }}
@@ -276,33 +342,11 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
           </div>
 
           {/* Body */}
-          <div className={`prose animate-fade-up ${spotlight ? 'reader-spotlight' : ''}`} style={{ position: 'relative' }}>
-            {paragraphs.map((para, i) => {
-              const paraClass = spotlight
-                ? (i === activePara ? 'para-active' : 'para-dim')
-                : '';
-              if (/^BAB\s|^---/.test(para)) {
-                return (
-                  <ScrollReveal key={i}>
-                    <h2 id={`heading-${i}`} className={`heading-reveal ${paraClass}`} style={{
-                      fontSize: 14, fontWeight: 600, letterSpacing: '0.05em',
-                      textTransform: 'uppercase', color: 'var(--slate)',
-                      margin: '64px 0 32px', borderBottom: 'none', paddingBottom: 0
-                    }}>
-                      {para.replace(/^---\s*/, '')}
-                    </h2>
-                  </ScrollReveal>
-                );
-              }
-              return (
-                <ScrollReveal key={i}>
-                  <p className={paraClass}>
-                    {para}
-                  </p>
-                </ScrollReveal>
-              );
-            })}
-          </div>
+          <div 
+            className={`prose animate-fade-up ${spotlight ? 'reader-spotlight' : ''}`} 
+            style={{ position: 'relative' }}
+            dangerouslySetInnerHTML={{ __html: modifiedContent }}
+          />
 
           {/* Tags */}
           {writing.tags.length > 0 && (

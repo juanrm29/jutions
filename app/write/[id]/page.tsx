@@ -90,11 +90,14 @@ export default function EditorPage() {
           setWritingId(w.id);
           // Set content as HTML paragraphs
           if (editor) {
-            const html = w.content
-              .split('\n\n')
-              .filter(Boolean)
-              .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-              .join('');
+            let html = w.content;
+            if (!html.includes('<p>') && !html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>')) {
+              html = w.content
+                .split('\n\n')
+                .filter(Boolean)
+                .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+                .join('');
+            }
             editor.commands.setContent(html);
           }
         }
@@ -112,11 +115,17 @@ export default function EditorPage() {
     return editor.getText();
   }, [editor]);
 
+  const getContentHTML = useCallback(() => {
+    if (!editor) return '';
+    return editor.getHTML();
+  }, [editor]);
+
   const handleSave = useCallback(async () => {
     if (!editor) return;
     setSaveStatus('saving');
 
     const contentText = getContentText();
+    const contentHTML = getContentHTML();
     const now = new Date().toISOString();
     const tagsArr = tags.split(',').map((t) => t.trim()).filter(Boolean);
     const currentId = writingId || generateId();
@@ -133,7 +142,7 @@ export default function EditorPage() {
       genre,
       emoji,
       excerpt: contentText.slice(0, 160).trim() + (contentText.length > 160 ? '...' : ''),
-      content: contentText,
+      content: contentHTML,
       createdAt,
       updatedAt: now,
       readTime: calcReadTime(contentText),
