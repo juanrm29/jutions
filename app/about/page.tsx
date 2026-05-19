@@ -1,10 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getWritings, getAboutContent, saveAboutContent } from '../../lib/store';
 import { Writing, GENRE_META } from '../../lib/types';
 import { isAdmin } from '../../lib/auth';
 import ScrollReveal from '../components/ScrollReveal';
+import DonutChart from '../components/DonutChart';
+
+const GENRE_CHART_COLORS: Record<string, string> = {
+  cerpen: '#2563eb',
+  novel: '#e11d48',
+  jurnal: '#16a34a',
+  esai: '#0891b2',
+  puisi: '#9333ea',
+  lainnya: '#64748b',
+};
 
 function AnimatedCounter({ value }: { value: number | string }) {
   const [count, setCount] = useState(0);
@@ -59,6 +69,15 @@ export default function AboutPage() {
     acc[w.genre] = (acc[w.genre] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+
+  // Genre segments for donut chart
+  const genreSegments = Object.entries(counts)
+    .filter(([, v]) => v > 0)
+    .map(([key, value]) => ({
+      label: GENRE_META[key as keyof typeof GENRE_META]?.label || key,
+      value,
+      color: GENRE_CHART_COLORS[key] || '#64748b',
+    }));
 
   const totalWords = writings.reduce((sum, w) => sum + w.content.trim().split(/\s+/).length, 0);
 
@@ -199,6 +218,27 @@ export default function AboutPage() {
         </div>
       </ScrollReveal>
 
+      {/* Genre Distribution Donut */}
+      {genreSegments.length > 0 && (
+        <ScrollReveal className="animate-fade-up" style={{ marginBottom: 64 }}>
+          <h2 style={{
+            fontSize: 12, fontWeight: 600, letterSpacing: '0.05em',
+            textTransform: 'uppercase', color: 'var(--stone)',
+            marginBottom: 16,
+          }}>
+            Distribusi Genre
+          </h2>
+          <div style={{
+            padding: 32, borderRadius: 'var(--r-card)',
+            border: '1px solid var(--hairline)',
+            background: 'var(--surface)',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+          }}>
+            <DonutChart segments={genreSegments} size={200} />
+          </div>
+        </ScrollReveal>
+      )}
+
       {/* Filosofi */}
       <ScrollReveal className="animate-fade-up" style={{
         padding: 32, borderRadius: 'var(--r-card)',
@@ -216,9 +256,44 @@ export default function AboutPage() {
           borderLeft: '2px solid var(--stone)',
           paddingLeft: 20, margin: 0, fontStyle: 'italic'
         }}>
-          &ldquo;Menulis bukan soal menghasilkan produk jadi. Ia lebih seperti percakapan dengan diri sendiri, dan seperti kebanyakan percakapan, ia tidak selalu butuh kesimpulan.&rdquo;
+        <QuoteTypewriter text="Menulis bukan soal menghasilkan produk jadi. Ia lebih seperti percakapan dengan diri sendiri, dan seperti kebanyakan percakapan, ia tidak selalu butuh kesimpulan." />
         </blockquote>
       </ScrollReveal>
     </div>
+  );
+}
+
+// QuoteTypewriter component
+function QuoteTypewriter({ text }: { text: string }) {
+  const [displayed, setDisplayed] = useState('');
+  const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting && !started) setStarted(true); },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayed(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(interval);
+    }, 25);
+    return () => clearInterval(interval);
+  }, [started, text]);
+
+  return (
+    <span ref={ref} className={displayed.length < text.length ? 'typewriter-cursor' : 'typewriter-cursor done'}>
+      &ldquo;{displayed || '\u00a0'}&rdquo;
+    </span>
   );
 }

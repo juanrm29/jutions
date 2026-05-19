@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getWritings } from '../lib/store';
@@ -9,6 +9,15 @@ import { isAdmin } from '../lib/auth';
 import DailyPrompt from './components/DailyPrompt';
 import ScrollReveal from './components/ScrollReveal';
 import { SkeletonRow, SkeletonCard } from './components/SkeletonLoader';
+
+const GENRE_COLORS: Record<string, string> = {
+  novel: 'rgba(225, 29, 72, 0.06)',
+  cerpen: 'rgba(37, 99, 235, 0.06)',
+  jurnal: 'rgba(22, 163, 74, 0.06)',
+  esai: 'rgba(37, 99, 235, 0.06)',
+  puisi: 'rgba(147, 51, 234, 0.06)',
+  lainnya: 'rgba(0, 0, 0, 0.03)',
+};
 
 type SortMode = 'newest' | 'oldest' | 'alpha' | 'genre';
 type ViewMode = 'list' | 'card';
@@ -32,13 +41,41 @@ function HomeContent() {
   const [genre, setGenre] = useState<'all' | Genre>(genreParam || 'all');
   const [search, setSearch] = useState('');
   const [admin, setAdmin] = useState(false);
+  const [hoveredGenre, setHoveredGenre] = useState<string | null>(null);
+  const [typewriterCount, setTypewriterCount] = useState('');
+  const [typewriterDone, setTypewriterDone] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     getWritings().then(data => {
       setWritings(data);
       setLoading(false);
+      // Typewriter effect for count
+      const pubCount = data.filter(w => w.published).length;
+      const text = `${pubCount} tulisan`;
+      let i = 0;
+      const interval = setInterval(() => {
+        setTypewriterCount(text.slice(0, i + 1));
+        i++;
+        if (i >= text.length) {
+          clearInterval(interval);
+          setTimeout(() => setTypewriterDone(true), 600);
+        }
+      }, 60);
     });
     setAdmin(isAdmin());
+  }, []);
+
+  // Magnetic title parallax
+  const handleTitleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!titleRef.current) return;
+    const rect = titleRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+    const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+    titleRef.current.style.transform = `translate(${x * 8}px, ${y * 4}px)`;
+  }, []);
+  const handleTitleMouseLeave = useCallback(() => {
+    if (titleRef.current) titleRef.current.style.transform = 'translate(0, 0)';
   }, []);
 
   useEffect(() => {
@@ -101,6 +138,16 @@ function HomeContent() {
 
   return (
     <div className="page-container">
+      {/* Genre color pulse background */}
+      <div
+        className={`genre-pulse-bg ${hoveredGenre ? 'active' : ''}`}
+        style={{
+          background: hoveredGenre && hoveredGenre !== 'all'
+            ? `radial-gradient(ellipse at 50% 0%, ${GENRE_COLORS[hoveredGenre] || 'transparent'}, transparent 70%)`
+            : 'transparent',
+        }}
+      />
+
       {/* Animated gradient mesh hero */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: '40vh',
@@ -110,12 +157,17 @@ function HomeContent() {
       }} />
 
       {/* Page header */}
-      <div className="animate-fade-up" style={{ marginBottom: 40, position: 'relative' }}>
-        <h1 className="linear-title" style={{ marginBottom: 8 }}>
+      <div
+        className="animate-fade-up"
+        style={{ marginBottom: 40, position: 'relative' }}
+        onMouseMove={handleTitleMouseMove}
+        onMouseLeave={handleTitleMouseLeave}
+      >
+        <h1 ref={titleRef} className="linear-title magnetic-title" style={{ marginBottom: 8 }}>
           Semua Tulisan
         </h1>
-        <p style={{ fontSize: 15, color: 'var(--stone)', fontWeight: 400 }}>
-          {writings.filter((w) => w.published).length} tulisan
+        <p className={`typewriter-cursor ${typewriterDone ? 'done' : ''}`} style={{ fontSize: 15, color: 'var(--stone)', fontWeight: 400 }}>
+          {typewriterCount || '\u00a0'}
         </p>
       </div>
 
@@ -198,7 +250,9 @@ function HomeContent() {
             <button
               key={g}
               onClick={() => setGenre(g)}
-              className={genre === g ? 'view-toggle-btn active' : 'view-toggle-btn'}
+              onMouseEnter={() => g !== 'all' && setHoveredGenre(g)}
+              onMouseLeave={() => setHoveredGenre(null)}
+              className={`genre-pill-animated ${genre === g ? 'view-toggle-btn active active-pill' : 'view-toggle-btn'}`}
               style={{
                 borderRadius: 'var(--r-full)',
                 border: '1px solid var(--hairline)',
@@ -262,6 +316,7 @@ function HomeContent() {
               <Link
                 href={`/read/${w.id}`}
                 className="notion-row animate-fade-up"
+                style={{ '--row-genre-color': `var(--genre-${w.genre})` } as React.CSSProperties}
               >
                 <span className="notion-row-title">{w.title}</span>
                 <span className="genre-badge" style={{ fontSize: 11, background: 'transparent', color: `var(--genre-${w.genre})`, borderColor: `var(--genre-${w.genre})` }}>
@@ -295,10 +350,21 @@ function HomeContent() {
             <ScrollReveal key={w.id} className={`stagger-${Math.min((i % 8) + 1, 8)}`}>
               <Link 
                 href={`/read/${w.id}`} 
-                className="writing-card tilt-card animate-fade-up"
-                onMouseMove={(e) => handleMouseMove(e, w.id)}
+                className="writing-card tilt-card card-spring-enter"
+                onMouseMove={(e) => {
+                  handleMouseMove(e, w.id);
+                  // Spotlight glow tracking
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                  e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                }}
                 onMouseLeave={handleMouseLeave}
+                style={{ animationDelay: `${i * 80}ms` }}
               >
+                {/* Genre accent strip */}
+                <div className="card-genre-strip" style={{ '--card-genre-color': `var(--genre-${w.genre})` } as React.CSSProperties} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <span className="genre-badge" style={{ fontSize: 11, background: 'var(--canvas)', color: `var(--genre-${w.genre})`, borderColor: `var(--genre-${w.genre})` }}>
                     {GENRE_META[w.genre]?.label}

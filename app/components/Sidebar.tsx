@@ -108,7 +108,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
               <div className="sidebar-section-title">Navigasi</div>
               <Link
                 href="/"
-                className={`sidebar-item ${pathname === '/' ? 'active' : ''}`}
+                className={`sidebar-item sidebar-nav-item ${pathname === '/' ? 'active' : ''}`}
                 onClick={onClose}
               >
                 <span className="sidebar-item-emoji">
@@ -120,7 +120,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
               {admin && (
                 <Link
                   href="/write/new"
-                  className={`sidebar-item ${pathname === '/write/new' ? 'active' : ''}`}
+                  className={`sidebar-item sidebar-nav-item ${pathname === '/write/new' ? 'active' : ''}`}
                   onClick={onClose}
                 >
                   <span className="sidebar-item-emoji">
@@ -131,7 +131,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
               )}
               <Link
                 href="/about"
-                className={`sidebar-item ${pathname === '/about' ? 'active' : ''}`}
+                className={`sidebar-item sidebar-nav-item ${pathname === '/about' ? 'active' : ''}`}
                 onClick={onClose}
               >
                 <span className="sidebar-item-emoji">
@@ -169,7 +169,8 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
                 <Link
                   key={w.id}
                   href={`/read/${w.id}`}
-                  className={`sidebar-item ${pathname === `/read/${w.id}` ? 'active' : ''}`}
+                  className={`sidebar-item sidebar-item-recent ${pathname === `/read/${w.id}` ? 'active' : ''}`}
+                  style={{ '--breathing-delay': `${recentWritings.indexOf(w) * 0.5}s` } as React.CSSProperties}
                   onClick={onClose}
                 >
                   <span className="sidebar-item-emoji">{w.emoji}</span>

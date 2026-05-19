@@ -224,6 +224,61 @@ body {
   border-top: 1px solid var(--hairline);
 }
 
+/* ═══════════════════════════════════════════
+   PHASE D: LIVING SIDEBAR
+   ═══════════════════════════════════════════ */
+
+/* 🎯 Sliding active indicator */
+.sidebar-nav-item {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  border-radius: var(--r-full);
+  background: var(--ink-deep);
+  animation: indicator-slide-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-theme="dark"] .sidebar-nav-item.active::before {
+  background: var(--primary);
+}
+@keyframes indicator-slide-in {
+  from { transform: translateY(-50%) scaleY(0); opacity: 0; }
+  to { transform: translateY(-50%) scaleY(1); opacity: 1; }
+}
+
+/* 💫 Breathing glow on recent items */
+@keyframes breathing-glow {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 8px rgba(225, 29, 72, 0.12); }
+}
+.sidebar-item-recent {
+  animation: breathing-glow 3s ease-in-out infinite;
+  animation-delay: var(--breathing-delay, 0s);
+}
+
+/* 📱 Staggered mobile reveal */
+@keyframes sidebar-stagger-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 768px) {
+  .sidebar.open .sidebar-section {
+    animation: sidebar-stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .sidebar.open .sidebar-section:nth-child(1) { animation-delay: 0.05s; }
+  .sidebar.open .sidebar-section:nth-child(2) { animation-delay: 0.1s; }
+  .sidebar.open .sidebar-section:nth-child(3) { animation-delay: 0.15s; }
+  .sidebar.open .sidebar-section:nth-child(4) { animation-delay: 0.2s; }
+  .sidebar.open .sidebar-section:nth-child(5) { animation-delay: 0.25s; }
+}
+
 .page-content {
   flex: 1; margin-left: var(--sidebar-width);
   min-height: 100vh;
@@ -358,6 +413,81 @@ body {
   z-index: 10;
   border-color: var(--stone);
   box-shadow: var(--shadow-lg);
+}
+
+/* ═══════════════════════════════════════════
+   PHASE C: 3D CARD GALLERY
+   ═══════════════════════════════════════════ */
+
+/* 🔦 Mouse-tracking spotlight glow */
+.writing-card {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  position: relative;
+  overflow: hidden;
+}
+.writing-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  background: radial-gradient(
+    300px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.06),
+    transparent 60%
+  );
+}
+.writing-card:hover::after {
+  opacity: 1;
+}
+[data-theme="dark"] .writing-card::after {
+  background: radial-gradient(
+    300px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.04),
+    transparent 60%
+  );
+}
+
+/* 🎨 Genre accent strip */
+.card-genre-strip {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 0 var(--r-xs) var(--r-xs) 0;
+  background: var(--card-genre-color, var(--ink-deep));
+  transform: scaleY(0);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: center;
+}
+.writing-card:hover .card-genre-strip {
+  transform: scaleY(1);
+}
+
+/* 🧊 Glassmorphism in dark mode */
+[data-theme="dark"] .writing-card {
+  background: rgba(30, 32, 40, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .writing-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+/* 🪄 Spring entrance */
+@keyframes card-spring-in {
+  0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+  60% { transform: translateY(-4px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.card-spring-enter {
+  animation: card-spring-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ═══ Prose (Reader) ═══ */
@@ -518,6 +648,200 @@ body {
 .stagger-6 { animation-delay: 300ms !important; }
 .stagger-7 { animation-delay: 350ms !important; }
 .stagger-8 { animation-delay: 400ms !important; }
+
+/* ═══════════════════════════════════════════
+   PHASE A: KINETIC TYPOGRAPHY & MAGNETIC HERO
+   ═══════════════════════════════════════════ */
+
+/* 🔤 Typewriter cursor blink */
+@keyframes typewriter-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.typewriter-cursor::after {
+  content: '|';
+  display: inline-block;
+  animation: typewriter-blink 1s step-end infinite;
+  color: var(--stone);
+  font-weight: 300;
+  margin-left: 2px;
+}
+.typewriter-cursor.done::after {
+  display: none;
+}
+
+/* 🧲 Magnetic title — subtle parallax on mouse */
+.magnetic-title {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* 🌈 Genre color pulse on page background */
+.genre-pulse-bg {
+  position: fixed;
+  top: 0; left: var(--sidebar-width); right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.genre-pulse-bg.active {
+  opacity: 1;
+}
+@media (max-width: 768px) {
+  .genre-pulse-bg { left: 0; }
+}
+
+/* 💊 Genre pill spring morphing */
+@keyframes pill-spring {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  70% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.genre-pill-animated {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.genre-pill-animated.active-pill {
+  animation: pill-spring 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: 600;
+}
+.genre-pill-animated::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.genre-pill-animated:hover::before {
+  opacity: 0.06;
+}
+
+/* 📌 Notion row genre-colored left accent */
+.notion-row {
+  position: relative;
+  overflow: hidden;
+}
+.notion-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px;
+  height: 60%;
+  border-radius: 0 var(--r-xs) var(--r-xs) 0;
+  background: var(--row-genre-color, var(--ink-deep));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.notion-row:hover::before {
+  transform: translateY(-50%) scaleY(1);
+}
+
+/* 🎯 Animated counter number */
+@keyframes count-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.count-animate {
+  display: inline-block;
+  animation: count-pop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ═══════════════════════════════════════════
+   PHASE B: SCROLL-DRIVEN CINEMA
+   ═══════════════════════════════════════════ */
+
+/* 🎬 Paragraph spotlight — active paragraph glows, others dim */
+.reader-spotlight .prose > * {
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+.reader-spotlight .prose > .para-dim {
+  opacity: 0.35;
+  filter: blur(0.3px);
+}
+.reader-spotlight .prose > .para-active {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* 📖 Heading reveal — line expands from center */
+@keyframes heading-line-expand {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.heading-reveal {
+  position: relative;
+  padding-bottom: 12px;
+}
+.heading-reveal::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hairline-strong);
+  transform: scaleX(0);
+  transform-origin: center;
+}
+.heading-reveal.visible::after {
+  animation: heading-line-expand 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.2s;
+}
+
+/* ⏱️ Reading countdown badge */
+@keyframes countdown-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.reading-countdown {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--shadow-lg);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--slate);
+  z-index: 50;
+  animation: countdown-pop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s ease;
+}
+
+/* ✅ End-of-article completion */
+@keyframes completion-spring {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.completion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: var(--r-full);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-deep);
+  animation: completion-spring 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: var(--shadow-md);
+}
+.completion-badge svg {
+  color: #16a34a;
+}
 
 /* Scroll Reveal */
 .reveal {
@@ -1419,4 +1743,112 @@ body.zen-mode .stats-bar:hover {
 .prose ::selection {
   background: var(--surface-active);
   color: var(--ink-deep);
+}
+
+/* ═══════════════════════════════════════════
+   PHASE F: SENSORY FEEDBACK SYSTEM
+   ═══════════════════════════════════════════ */
+
+/* 🔔 Toast notification */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-item {
+  will-change: transform, opacity;
+}
+
+/* 💧 Button ripple effect */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), rgba(255,255,255,0.3) 0%, transparent 60%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+}
+.btn-primary:active::after {
+  opacity: 1;
+  transform: scale(2.5);
+  transition: transform 0s, opacity 0s;
+}
+
+/* 🗑️ Delete button shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+.btn-delete-shake:hover {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* 🔍 Search input expanding glow */
+.controls-search:focus {
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06), 0 0 20px rgba(0,0,0,0.04);
+  border-color: var(--ink-deep) !important;
+}
+[data-theme="dark"] .controls-search:focus {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.06), 0 0 20px rgba(255,255,255,0.03);
+  border-color: var(--stone) !important;
+}
+
+/* ✅ Success save pulse */
+@keyframes save-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+.save-success-pulse {
+  animation: save-pulse 0.6s ease-out;
+}
+
+/* ═══════════════════════════════════════════
+   PHASE G: REDUCED MOTION & ACCESSIBILITY
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .tilt-card {
+    transform: none !important;
+  }
+  .magnetic-title {
+    transform: none !important;
+  }
+  .genre-pulse-bg {
+    display: none;
+  }
+  .sidebar-item-recent {
+    animation: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  :root {
+    --hairline: #999;
+    --hairline-strong: #666;
+    --stone: #555;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .notion-row:hover {
+    border-color: var(--ink-deep);
+    outline: 1px solid var(--ink-deep);
+  }
+  .writing-card:hover {
+    border-color: var(--ink-deep);
+    outline: 1px solid var(--ink-deep);
+  }
 }

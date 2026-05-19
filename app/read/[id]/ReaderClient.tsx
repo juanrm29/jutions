@@ -19,6 +19,10 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
   const [related, setRelated] = useState<Writing[]>([]);
   const [immersive, setImmersive] = useState(false);
   const [activeHeading, setActiveHeading] = useState<string>('');
+  const [spotlight, setSpotlight] = useState(false);
+  const [activePara, setActivePara] = useState(-1);
+  const [completed, setCompleted] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const paragraphs = writing?.content.split('\n\n').filter(Boolean) || [];
@@ -75,6 +79,38 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
       if (total <= 0) { setProgress(100); return; }
       const scrolled = Math.abs(rect.top);
       setProgress(Math.min(100, (scrolled / total) * 100));
+
+      // Remaining reading time
+      const percentRemaining = 1 - Math.min(1, scrolled / total);
+      if (writing.readTime) {
+        setRemainingTime(Math.max(0, Math.ceil(writing.readTime * percentRemaining)));
+      }
+
+      // Completion check
+      if (scrolled / total >= 0.95 && !completed) {
+        setCompleted(true);
+      }
+
+      // Paragraph spotlight
+      if (spotlight) {
+        const proseEl = contentRef.current?.querySelector('.prose');
+        if (proseEl) {
+          const children = proseEl.children;
+          let closest = -1;
+          let closestDist = Infinity;
+          const viewCenter = window.innerHeight / 2;
+          for (let i = 0; i < children.length; i++) {
+            const rect = children[i].getBoundingClientRect();
+            const center = rect.top + rect.height / 2;
+            const dist = Math.abs(center - viewCenter);
+            if (dist < closestDist) {
+              closestDist = dist;
+              closest = i;
+            }
+          }
+          setActivePara(closest);
+        }
+      }
       
       // Save scroll
       localStorage.setItem(`jution-scroll-${writing.id}`, window.scrollY.toString());
@@ -150,6 +186,16 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
             style={{ fontSize: 16 }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+
+          <button
+            className={`btn-icon ${spotlight ? 'active' : ''}`}
+            onClick={() => { setSpotlight(!spotlight); if (spotlight) setActivePara(-1); }}
+            aria-label="Toggle Spotlight Mode"
+            title="Mode Sorotan"
+            style={{ fontSize: 16 }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           </button>
           
           <TypographyPanel />
@@ -230,12 +276,15 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
           </div>
 
           {/* Body */}
-          <div className="prose animate-fade-up">
+          <div className={`prose animate-fade-up ${spotlight ? 'reader-spotlight' : ''}`} style={{ position: 'relative' }}>
             {paragraphs.map((para, i) => {
+              const paraClass = spotlight
+                ? (i === activePara ? 'para-active' : 'para-dim')
+                : '';
               if (/^BAB\s|^---/.test(para)) {
                 return (
                   <ScrollReveal key={i}>
-                    <h2 id={`heading-${i}`} style={{
+                    <h2 id={`heading-${i}`} className={`heading-reveal ${paraClass}`} style={{
                       fontSize: 14, fontWeight: 600, letterSpacing: '0.05em',
                       textTransform: 'uppercase', color: 'var(--slate)',
                       margin: '64px 0 32px', borderBottom: 'none', paddingBottom: 0
@@ -247,7 +296,7 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
               }
               return (
                 <ScrollReveal key={i}>
-                  <p>
+                  <p className={paraClass}>
                     {para}
                   </p>
                 </ScrollReveal>
@@ -313,6 +362,23 @@ export default function ReaderClient({ id, initialData }: { id: string, initialD
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Reading countdown */}
+      {progress > 5 && progress < 95 && remainingTime > 0 && (
+        <div className="reading-countdown">
+          ⏱ {remainingTime} min lagi
+        </div>
+      )}
+
+      {/* Completion badge */}
+      {completed && (
+        <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
+          <span className="completion-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Selesai dibaca
+          </span>
         </div>
       )}
     </>

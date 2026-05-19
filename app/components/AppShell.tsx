@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import CommandPalette from './CommandPalette';
 import BackToTop from './BackToTop';
 import QuickDraft from './QuickDraft';
+import { ToastProvider } from './Toast';
 import { isAdmin } from '../../lib/auth';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -62,6 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
+    <ToastProvider>
     <div className="app-shell">
       {/* SVG Filters */}
       <svg width="0" height="0" style={{ position: 'absolute' }}>
@@ -111,5 +113,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {admin && <QuickDraft />}
       <BackToTop />
     </div>
+    </ToastProvider>
   );
 }
