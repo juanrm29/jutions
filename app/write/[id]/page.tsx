@@ -201,6 +201,33 @@ export default function EditorPage() {
     return () => document.body.classList.remove('zen-mode');
   }, [zenMode]);
 
+  // Escape key closes dropdowns
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowGenrePicker(false);
+        setShowMore(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Click outside closes dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showGenrePicker && !target.closest('[data-genre-picker]')) {
+        setShowGenrePicker(false);
+      }
+      if (showMore && !target.closest('[data-more-menu]')) {
+        setShowMore(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showGenrePicker, showMore]);
+
   const wordCount = getContentText().trim() ? getContentText().trim().split(/\s+/).length : 0;
   const speakingTime = Math.max(1, Math.ceil(wordCount / 130));
   const paragraphCount = getContentText().split('\n\n').filter(Boolean).length;
@@ -225,7 +252,7 @@ export default function EditorPage() {
             style={{ fontSize: 12, padding: '4px 10px', whiteSpace: 'nowrap' }}
             onClick={() => setPublished(!published)}
           >
-            {published ? '✓ Published' : 'Draft'}
+            {published ? '✓ Terbit' : 'Draft'}
           </button>
 
           <button className="btn-primary" style={{ fontSize: 12, padding: '5px 12px', whiteSpace: 'nowrap' }} onClick={handleSave}>
@@ -243,7 +270,7 @@ export default function EditorPage() {
 
           {/* More menu */}
           {writingId && (
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative' }} data-more-menu>
               <button className="btn-icon" onClick={() => setShowMore(!showMore)}>···</button>
               {showMore && (
                 <div style={{
@@ -270,7 +297,7 @@ export default function EditorPage() {
       {/* Editor area */}
       <div className="reader-container">
         {/* Genre emoji */}
-        <div style={{ position: 'relative', marginBottom: 12 }}>
+        <div style={{ position: 'relative', marginBottom: 12 }} data-genre-picker>
           <button
             onClick={() => setShowGenrePicker(!showGenrePicker)}
             style={{
@@ -489,18 +516,18 @@ export default function EditorPage() {
                 borderRadius: 'var(--r-md)', padding: 16, width: 200,
                 boxShadow: 'var(--shadow-lg)', color: 'var(--ink)'
               }}>
-                <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone)', marginBottom: 12 }}>Text Insights</h4>
+                <h4 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--stone)', marginBottom: 12 }}>Analisis Teks</h4>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: 'var(--slate)' }}>Speaking Time</span>
+                  <span style={{ color: 'var(--slate)' }}>Waktu Bicara</span>
                   <span style={{ fontWeight: 500 }}>{speakingTime} min</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ color: 'var(--slate)' }}>Paragraphs</span>
+                  <span style={{ color: 'var(--slate)' }}>Paragraf</span>
                   <span style={{ fontWeight: 500 }}>{paragraphCount}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--slate)' }}>Density</span>
-                  <span style={{ fontWeight: 500 }}>{density} w/p</span>
+                  <span style={{ color: 'var(--slate)' }}>Kepadatan</span>
+                  <span style={{ fontWeight: 500 }}>{density} k/p</span>
                 </div>
               </div>
             )}

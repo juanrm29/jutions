@@ -35,7 +35,7 @@ export default function DailyPrompt() {
       const content = `<blockquote><p>${prompt}</p></blockquote><p></p>`;
       const newDoc = {
         id,
-        title: 'Daily Prompt Response',
+        title: 'Respons Prompt Harian',
         content,
         genre: 'jurnal' as const,
         emoji: '📓',
@@ -74,7 +74,7 @@ export default function DailyPrompt() {
       </div>
       
       <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--stone)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-        Daily Prompt
+        Prompt Harian
       </div>
       <div style={{ fontSize: '16px', fontWeight: 500, color: 'var(--ink-deep)', marginBottom: '16px', lineHeight: 1.5, maxWidth: '80%' }}>
         "{prompt}"

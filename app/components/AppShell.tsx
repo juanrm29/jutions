@@ -16,11 +16,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setAdmin(isAdmin());
     
-    // Custom cursor logic
+    // Custom cursor logic with rAF throttling
     document.body.classList.add('custom-cursor');
     
+    let rafId: number | null = null;
+    let latestX = -100;
+    let latestY = -100;
+    let latestType = 'default';
+    
+    const updateCursor = () => {
+      setCursorPos({ x: latestX, y: latestY });
+      setCursorType(latestType);
+      rafId = null;
+    };
+    
     const handleMouseMove = (e: MouseEvent) => {
-      setCursorPos({ x: e.clientX, y: e.clientY });
+      latestX = e.clientX;
+      latestY = e.clientY;
       
       const target = e.target as HTMLElement;
       if (!target) return;
@@ -29,17 +41,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       const tag = target.tagName.toLowerCase();
       
       if (computedCursor === 'pointer' || tag === 'button' || tag === 'a' || target.closest('button') || target.closest('a')) {
-        setCursorType('interactive');
+        latestType = 'interactive';
       } else if (computedCursor === 'text' || tag === 'p' || tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'input' || tag === 'textarea' || target.closest('.ProseMirror')) {
-        setCursorType('text');
+        latestType = 'text';
       } else {
-        setCursorType('default');
+        latestType = 'default';
+      }
+      
+      if (!rafId) {
+        rafId = requestAnimationFrame(updateCursor);
       }
     };
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
       document.body.classList.remove('custom-cursor');
     };
   }, []);

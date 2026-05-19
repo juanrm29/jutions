@@ -1259,3 +1259,164 @@ body.zen-mode .stats-bar:hover {
   font-size: 24px;
   font-weight: 300;
 }
+
+/* ═══════════════════════════════════════════
+   PHASE 7: FINAL POLISH
+   ═══════════════════════════════════════════ */
+
+/* 🔄 Page Transitions (View Transitions API) */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: fade-out 0.15s ease-in;
+}
+::view-transition-new(root) {
+  animation: fade-in-slide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.99); }
+}
+@keyframes fade-in-slide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 🏷️ Admin Badge */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--ink-deep), var(--charcoal));
+  color: var(--canvas);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+[data-theme="dark"] .admin-badge {
+  background: linear-gradient(135deg, #e0e2e6, #b9bcc4);
+  color: #0e0f11;
+}
+
+/* 🎨 Genre Badge hover enhancement */
+.genre-badge {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 📋 Notion Row subtle glow on hover */
+.notion-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, var(--surface-hover), transparent 70%);
+}
+.notion-row {
+  position: relative;
+}
+.notion-row:hover::after {
+  opacity: 1;
+}
+
+/* 🖊️ Writing Card shine on hover */
+.writing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: var(--r-card);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.08) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255,255,255,0.03) 100%
+  );
+}
+.writing-card {
+  position: relative;
+  overflow: hidden;
+}
+.writing-card:hover::before {
+  opacity: 1;
+}
+
+/* ✨ Login input focus enhancement */
+.login-input {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.login-input:focus {
+  border-color: var(--ink-deep);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06), var(--shadow-sm);
+  transform: translateY(-1px);
+}
+[data-theme="dark"] .login-input:focus {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.06), var(--shadow-sm);
+}
+
+/* 🎯 Focus visible ring for accessibility */
+:focus-visible {
+  outline: 2px solid var(--ink-deep);
+  outline-offset: 2px;
+}
+[data-theme="dark"] :focus-visible {
+  outline-color: var(--primary);
+}
+
+/* 📱 Smooth sidebar transition polish */
+.sidebar {
+  will-change: transform;
+}
+
+/* 💫 Dot grid pattern fade at top */
+.page-content::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, var(--canvas), transparent);
+  z-index: 1;
+  pointer-events: none;
+}
+@media (max-width: 768px) {
+  .page-content::before {
+    left: 0;
+    top: 52px;
+  }
+}
+
+/* 🎨 Subtle hover lift for interactive elements */
+.btn-primary,
+.btn-secondary {
+  will-change: transform;
+}
+
+/* 📝 Prose link styling */
+.prose a {
+  color: var(--ink-deep);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease;
+}
+.prose a:hover {
+  text-decoration-color: var(--ink-deep);
+}
+
+/* 🔲 Selection color enhancement */
+.prose ::selection {
+  background: var(--surface-active);
+  color: var(--ink-deep);
+}

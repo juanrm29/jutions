@@ -117,19 +117,33 @@ Dibuat dari nol karena tidak ada tempat lain yang terasa cukup tepat: cukup bers
 Di sini tidak ada algoritma yang menentukan tulisan mana yang "layak" dilihat. Semua tulisan berdiri setara, dibaca berdasarkan rasa ingin tahu, bukan viralitas.`;
 
 export async function getAboutContent(): Promise<string> {
-  const { data, error } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'about_content')
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'about_content')
+      .single();
 
-  if (error || !data) return DEFAULT_ABOUT;
-  return data.value;
+    if (error) {
+      // 406 = table/RLS not configured, PGRST116 = no rows found
+      if (error.code !== 'PGRST116') {
+        console.warn('[Jution] Settings table issue:', error.message, '— using default about content.');
+      }
+      return DEFAULT_ABOUT;
+    }
+    return data?.value || DEFAULT_ABOUT;
+  } catch {
+    return DEFAULT_ABOUT;
+  }
 }
 
 export async function saveAboutContent(content: string): Promise<void> {
-  const { error } = await supabase
-    .from('settings')
-    .upsert({ key: 'about_content', value: content });
-  if (error) console.error('Error saving about content:', error);
+  try {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'about_content', value: content });
+    if (error) console.warn('[Jution] Could not save about content:', error.message);
+  } catch (e) {
+    console.warn('[Jution] Settings save failed — table may not exist.');
+  }
 }
